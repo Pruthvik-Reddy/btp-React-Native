@@ -1,11 +1,16 @@
 import { StatusBar } from 'expo-status-bar';
-import React,{useState} from 'react';
+import React,{useState, Component} from 'react';
 import { StyleSheet, Text, View, Button } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
+import * as ImagePicker from 'expo-image-picker';
+import uuid from 'uuid';
+import storage from '@react-native-firebase/storage'; 
 
 export default function App() {
 
   const [singleFile, setSingleFile] = useState('');
+  const [singleImage, setSingleImage] = useState('');
+
 
   async function func(){
   let res = await DocumentPicker.getDocumentAsync({
@@ -28,15 +33,51 @@ export default function App() {
       console.log('File Size : ' + res.size);
 
       setSingleFile(res);
-}
+  }
 
+
+
+handleOnPress=()=>{
+  console.log(" Image Button Pressed");
+  ImagePicker.launchImageLibraryAsync(
+    {
+      mediaTypes:"Images"
+    }
+  ).then((result)=>{
+    if(!result.cancelled){
+      const {image_height,image_width,image_uri}=result;
+      console.log(result);
+      setSingleImage(result);
+      
+
+
+    }
+  })
+
+}
+async function uploadImageAsync(uri) {
+	const blob = await new Promise((resolve, reject) => {
+		const xhr = new XMLHttpRequest();
+		xhr.onload = function() {
+			resolve(xhr.response);
+		};
+		xhr.onerror = function(e) {
+			console.log(e);
+			reject(new TypeError('Network request failed'));
+		};
+		xhr.responseType = 'blob';
+		xhr.open('GET', uri, true);
+		xhr.send(null);
+  });
+}
   return (
     <View style={styles.container}>
       <Text>Open up App.js to start working on your app!!!!</Text>
       <Button title="Click Me" onPress={func}></Button>
-      <Text>
-      File Name: {singleFile.name ? singleFile.name : ''}
-      </Text>
+      <Text>File Name: {singleFile.name ? singleFile.name : ''}</Text>
+      <Text>Choose Photo</Text>
+      <Button title="Upload Image" onPress={handleOnPress}></Button>
+      <Text>Status: {singleImage.uri ? "Image Uploaded" : ''}</Text>
       
       <StatusBar style="auto" />
     </View>
